@@ -407,8 +407,8 @@ for myids in barrelids :
     rollCSErrInRun = barrelRollsCSErrDict[myids]
 
     for m in range(0, ntotruns):
-        vy[m] = rollCSInRun[i]
-        vyerr[m] = rollCSErrInRun[i]
+        vy[m] = rollCSInRun[m]
+        vyerr[m] = rollCSErrInRun[m]
 
     h2_CS = ROOT.TGraphErrors(vx, vy, vxerr, vyerr) 
     h2_CS.SetNameTitle(h2_name,h2_name)
@@ -423,8 +423,8 @@ for myids in endcapids :
     rollCSInRun = endcapRollsCSDict[myids]
     rollCSErrInRun = endcapRollsCSErrDict[myids]
     for m in range(0, ntotruns) :
-        vy[m] = rollCSInRun[i]
-        vyerr[m] = rollCSErrInRun[i]
+        vy[m] = rollCSInRun[m]
+        vyerr[m] = rollCSErrInRun[m]
 
     h4_CS = ROOT.TGraphErrors(vx, vy, vxerr, vyerr) 
     h4_CS.SetNameTitle(h4_name,h4_name)
