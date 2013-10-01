@@ -138,7 +138,7 @@ for r_entry in runTimeFile:
 rpcRuns = []
 rpcRunsTime = []
 
-runListFile = open("runslist.txt", "r")
+runListFile = open("runslist_small.txt", "r")
 for eachRun in runListFile:
     rpcRuns.append(int(eachRun.rstrip()))
     rpcRunsTime.append( float(runs_time[ eachRun.rstrip() ]) )
@@ -305,13 +305,13 @@ rfile_out = ROOT.TFile.Open(outfilename,"RECREATE")
 
 print "WRITE HISTORY PLOTS NORMALIZED TO RB3"
 
-rollidtree = ROOT.TVectorF(1100)
-mchi2 = ROOT.TVectorF(1100)
-mndf = ROOT.TVectorF(1100)
-mp0 = ROOT.TVectorF(1100)
-mp1 = ROOT.TVectorF(1100)
-mp0err = ROOT.TVectorF(1100)
-mp1err = ROOT.TVectorF(1100)
+rollidtree = ROOT.TVectorF(1200)
+mchi2 = ROOT.TVectorF(1200)
+mndf = ROOT.TVectorF(1200)
+mp0 = ROOT.TVectorF(1200)
+mp1 = ROOT.TVectorF(1200)
+mp0err = ROOT.TVectorF(1200)
+mp1err = ROOT.TVectorF(1200)
 j = 0
 
 vx = ROOT.TVectorF(ntotruns)
@@ -323,7 +323,7 @@ for i in range(0, ntotruns):
     vx[i] = rpcRunsTime[i]
     vxerr[i] = 0.0
             
-
+rfile_out.cd()
 histodir1 = rfile_out.mkdir("Effhistory_normAllRB3")
 histodir1.cd()
 
@@ -361,11 +361,11 @@ for myids in barrelids :
 #            h_effruns.GetXaxis().SetBinLabel(m+1,str(rpcRuns[m]))
 
     tf1 = ROOT.TF1("tf1","[0]+x*[1]")
-    fitstat1 = h1_effruns.Fit(tf1,"S","",2012.26891223,2012.95816911)
+    fitstat1 = h1_effruns.Fit(tf1,"S","",2012.0,2012.95816911)
     rollidtree[j] = float(myids)
     mchi2[j] = fitstat1.Chi2()
     mndf[j] = fitstat1.Ndf()
-    mp0[j] = fitstat1.Parameter(0)
+    mp0[j] = fitstat1.Parameter(0) 
     mp0err[j] = fitstat1.ParError(0)
     mp1[j] = fitstat1.Parameter(1)
     mp1err[j] = fitstat1.ParError(1)
@@ -377,15 +377,18 @@ for myids in barrelids :
     j=j+1
 
 
+#histodirTree1 = rfile_out.mkdir("FitParameters_normAllRB3")
+histodir1.cd()
+
 efffit_barrel = RpcRollEffFit()
 
-mytree = ROOT.TTree('T', 'T')
+mytree = ROOT.TTree('FitParameters_normAllRB3', 'FitParameters_normAllRB3')
 mytree.Branch('efffit_barrel',efffit_barrel,'rollidtree/I:p0/F:p0err/F:p1/F:p1err/F:chi2/F:ndof/F')
 
 for i in range(0,j):
     efffit_barrel.rollidtree = rollidtree[i]
-    efffit_barrel.p0 = mp0[i]
-    efffit_barrel.p0err = mp0err[i]
+    efffit_barrel.p0 = mp0[i] + 2012*mp1[i]
+    efffit_barrel.p0err = math.sqrt(math.pow(mp0err[i],2) + math.pow(2012,2) * math.pow(mp1err[i],2))
     efffit_barrel.p1 = mp1[i]
     efffit_barrel.p1err = mp1err[i]
     efffit_barrel.chi2 = mchi2[i]
@@ -396,8 +399,11 @@ for i in range(0,j):
 mytree.Print()
 mytree.Write()
 
+rfile_out.cd()
 histodir1.cd()
+j = 0
     
+
 for myids in endcapids :
     tmpstring = (endcapRollsDict[myids]).replace('+','p').replace('-','m')
     
@@ -420,17 +426,49 @@ for myids in endcapids :
     h3_effruns = ROOT.TGraphErrors(vx, vy, vxerr, vyerr)
     h3_effruns.SetNameTitle(h3_name,h3_name)
     tf3 = ROOT.TF1("tf3","[0]+x*[1]")
-    h3_effruns.Fit(tf3,"","",2012.26891223,2012.95816911)
-            
+    fitstat3 = h3_effruns.Fit(tf3,"S","",2012.0,2012.95816911)
+    rollidtree[j] = float(myids)
+    mchi2[j] = fitstat3.Chi2()
+    mndf[j] = fitstat3.Ndf()
+    mp0[j] = fitstat3.Parameter(0)
+    mp0err[j] = fitstat3.ParError(0)
+    mp1[j] = fitstat3.Parameter(1)
+    mp1err[j] = fitstat3.ParError(1)
+                            
     h3_effruns.Write()
-    
+    j=j+1
+       
 rfile_out.cd()
 
+histodir1.cd()
 
+efffit_endcap = RpcRollEffFit()
+
+mytree = ROOT.TTree('FitParameters_normAllre1Ring3', 'FitParameters_normAllre1Ring3')
+mytree.Branch('efffit_endcap',efffit_endcap,'rollidtree/I:p0/F:p0err/F:p1/F:p1err/F:chi2/F:ndof/F')
+
+for i in range(0,j):
+    efffit_endcap.rollidtree = rollidtree[i]
+    efffit_endcap.p0 = mp0[i] + 2012*mp1[i]
+    efffit_endcap.p0err = math.sqrt(math.pow(mp0err[i],2) + math.pow(2012,2) * math.pow(mp1err[i],2))
+    efffit_endcap.p1 = mp1[i]
+    efffit_endcap.p1err = mp1err[i]
+    efffit_endcap.chi2 = mchi2[i]
+    efffit_endcap.ndof = mndf[i]
+    
+    mytree.Fill()
+
+mytree.Print()
+mytree.Write()
+
+                                    
 print "WRITE HISTORY PLOTS"
 
+rfile_out.cd()
 histodir2 = rfile_out.mkdir("Effhistory")
 histodir2.cd()
+j = 0
+
 
 for myids in barrelids :
     tmpstring = barrelRollsDict[myids]
@@ -455,9 +493,42 @@ for myids in barrelids :
     h2_eff = ROOT.TGraphErrors(vx, vy, vxerr, vyerr)
     h2_eff.SetNameTitle(h2_name,h2_name)
     tf2 = ROOT.TF1("tf2","[0]+x*[1]")
-    h2_eff.Fit(tf2,"","",2012.26891223,2012.95816911)
+    fitstat2 = h2_eff.Fit(tf2,"S","",2012.0,2012.95816911)
+    rollidtree[j] = float(myids)
+    mchi2[j] = fitstat2.Chi2()
+    mndf[j] = fitstat2.Ndf()
+    mp0[j] = fitstat2.Parameter(0)
+    mp0err[j] = fitstat2.ParError(0)
+    mp1[j] = fitstat2.Parameter(1)
+    mp1err[j] = fitstat2.ParError(1)
+    
     h2_eff.Write()
-                
+    j=j+1
+    
+
+##rfile_out.cd()
+efffit_barrel = RpcRollEffFit()
+
+mytree = ROOT.TTree('FitParameters_barrel', 'FitParameters_barrel')
+mytree.Branch('efffit_barrel',efffit_barrel,'rollidtree/I:p0/F:p0err/F:p1/F:p1err/F:chi2/F:ndof/F')
+
+for i in range(0,j):
+    efffit_barrel.rollidtree = rollidtree[i]
+    efffit_barrel.p0 = mp0[i] + 2012*mp1[i]
+    efffit_barrel.p0err = math.sqrt(math.pow(mp0err[i],2) + math.pow(2012,2) * math.pow(mp1err[i],2))
+    efffit_barrel.p1 = mp1[i]
+    efffit_barrel.p1err = mp1err[i]
+    efffit_barrel.chi2 = mchi2[i]
+    efffit_barrel.ndof = mndf[i]
+    
+    mytree.Fill()
+    
+mytree.Print()
+mytree.Write()
+    
+j = 0
+rfile_out.cd()
+histodir2.cd()
 
 for myids in endcapids :
     tmpstring = (endcapRollsDict[myids]).replace('+','p').replace('-','m')
@@ -473,16 +544,47 @@ for myids in endcapids :
     h4_eff = ROOT.TGraphErrors(vx, vy, vxerr, vyerr)
     h4_eff.SetNameTitle(h4_name,h4_name)
     tf4 = ROOT.TF1("tf4","[0]+x*[1]")
-    h4_eff.Fit(tf4,"","",2012.26891223,2012.95816911)
+    fitstat4 = h4_eff.Fit(tf4,"S","",2012.0,2012.95816911)
+    rollidtree[j] = float(myids)
+    mchi2[j] = fitstat4.Chi2()
+    mndf[j] = fitstat4.Ndf()
+    mp0[j] = fitstat4.Parameter(0)
+    mp0err[j] = fitstat4.ParError(0)
+    mp1[j] = fitstat4.Parameter(1)
+    mp1err[j] = fitstat4.ParError(1)
+    
     h4_eff.Write()
+    j=j+1
 
-                                                    
-rfile_out.cd()
 
+histodir2.cd()
+efffit_endcap = RpcRollEffFit()
+
+mytree = ROOT.TTree('FitParameters_endcap', 'FitParameters_encdap')
+mytree.Branch('efffit_endcap',efffit_endcap,'rollidtree/I:p0/F:p0err/F:p1/F:p1err/F:chi2/F:ndof/F')
+
+for i in range(0,j):
+    efffit_endcap.rollidtree = rollidtree[i]
+    efffit_endcap.p0 = mp0[i] + 2012*mp1[i]
+    efffit_endcap.p0err = math.sqrt(math.pow(mp0err[i],2) + math.pow(2012,2) * math.pow(mp1err[i],2))
+    efffit_endcap.p1 = mp1[i]
+    efffit_endcap.p1err = mp1err[i]
+    efffit_endcap.chi2 = mchi2[i]
+    efffit_endcap.ndof = mndf[i]
+    
+    mytree.Fill()
+    
+mytree.Print()
+mytree.Write()
+                                    
 print "WRITE HISTORY PLOTS NORMALIZED TO RB3 in the wheel"
 
+
 histodir5 = rfile_out.mkdir("Effhistory_RB3Norm_InWh")
+rfile_out.cd()
 histodir5.cd()
+j = 0
+
 
 for myids in barrelids :
     wh = ((barrelRollsDict[myids]).split('_'))[0]
@@ -507,12 +609,38 @@ for myids in barrelids :
     h5_effruns = ROOT.TGraphErrors(vx, vy, vxerr, vyerr)
     h5_effruns.SetNameTitle(h5_name,h5_name)
     tf5 = ROOT.TF1("tf5","[0]+x*[1]")
-    h5_effruns.Fit(tf5,"","",2012.26891223,2012.95816911)
-            
-    h5_effruns.Write()
+    fitstat5 = h5_effruns.Fit(tf5,"S","",2012.0,2012.95816911)
+    rollidtree[j] = float(myids)
+    mchi2[j] = fitstat5.Chi2()
+    mndf[j] = fitstat5.Ndf()
+    mp0[j] = fitstat5.Parameter(0)
+    mp0err[j] = fitstat5.ParError(0)
+    mp1[j] = fitstat5.Parameter(1)
+    mp1err[j] = fitstat5.ParError(1)
     
+    h5_effruns.Write()
+    j=j+1
+    
+histodir5.cd()
+efffit_barrel = RpcRollEffFit()
 
-rfile_out.cd()
+mytree = ROOT.TTree('FitParameters_barrel', 'FitParameters_barrel')
+mytree.Branch('efffit_barrel',efffit_barrel,'rollidtree/I:p0/F:p0err/F:p1/F:p1err/F:chi2/F:ndof/F')
+
+for i in range(0,j):
+    efffit_barrel.rollidtree = rollidtree[i]
+    efffit_barrel.p0 = mp0[i] + 2012*mp1[i]
+    efffit_barrel.p0err = math.sqrt(math.pow(mp0err[i],2) + math.pow(2012,2) * math.pow(mp1err[i],2))
+    efffit_barrel.p1 = mp1[i]
+    efffit_barrel.p1err = mp1err[i]
+    efffit_barrel.chi2 = mchi2[i]
+    efffit_barrel.ndof = mndf[i]
+    
+    mytree.Fill()
+    
+mytree.Print()
+mytree.Write()
+
 rfile_out.Close()
 
 
