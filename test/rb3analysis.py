@@ -137,13 +137,13 @@ roll_sel = []
 
 for i in xrange(fittree.GetEntries()):
     fittree.GetEntry(i)
-    if rpcfit.chi2 > 10000 :
+    if (rpcfit.chi2 < 3000) and ( (math.fabs(rpcfit.p1)>0.02) or (rpcfit.refp<0.9) ) :
         print rpcfit.rollidtree
         nroll_sel = nroll_sel + 1
         roll_sel.append( (rb3RollsDict[ str( rpcfit.rollidtree ) ] ).replace('+','p').replace('-','m')  )
 print nroll_sel
 
-outplotdir = "rb3plots"
+outplotdir = "rb3plots_outofbox"
 
 if not (os.path.exists(outplotdir)) :
     os.mkdir(outplotdir)
@@ -156,7 +156,7 @@ for rollname in roll_sel :
 
 
 print "DONE"
-
+print "writing results in ", outplotdir
 
 
 
