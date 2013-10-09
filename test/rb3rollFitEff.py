@@ -125,7 +125,7 @@ print lastRun, runs_time[lastRun]
 print "OPENING HISTORY PLOTS"
 
 # open root file
-rfile_in = ROOT.TFile.Open("eff_history_Graph_nofit.root")
+rfile_in = ROOT.TFile.Open("eff_history_Graph_nofit_newnorm.root")
 
 outfilename = "rb3RollsEffFit.root"
 
@@ -167,11 +167,11 @@ for myids in rb3ids :
 
 # time ref.set to 1st Jan 2012
 
-    mrefp = mp0 + 2012.0 * mp1
+    mrefp = mp0 + 2012.26891223 * mp1
 
     errsqref1 = mp0err*mp0err
-    errsqref2 = 2012.0 * 2012.0 * mp1err * mp1err
-    covtermref = 2.0 * 2012.0 * mcov
+    errsqref2 = 2012.26891223 * 2012.26891223 * mp1err * mp1err
+    covtermref = 2.0 * 2012.26891223 * mcov
     mrefperr = math.sqrt(errsqref1 + errsqref2 + covtermref)
 
         
@@ -180,7 +180,7 @@ for myids in rb3ids :
     print mp0, " +/- ", mp0err
     print mp1, " +/- ", mp1err
     print "cov =", mcov
-    print "Eff @ 1stJan 2012 =", mrefp, " +/- ", mrefperr
+    print "Eff @ 1st Run 2012 =", mrefp, " +/- ", mrefperr
 
     rpcfit.rollidtree = int(myids)
     rpcfit.p0 = mp0
