@@ -297,20 +297,23 @@ outfilename = "eff_history_Graph_nofit_newnorm.root"
 
 rfile_out = ROOT.TFile.Open(outfilename,"RECREATE")
 
-print "WRITE HISTORY PLOTS NORMALIZED TO RB3"
+print "WRITE HISTORY PLOTS NORMALIZED"
 
 
 vx = ROOT.TVectorF(ntotruns)
 vy = ROOT.TVectorF(ntotruns)
 vxerr = ROOT.TVectorF(ntotruns)
 vyerr = ROOT.TVectorF(ntotruns)
+vgr = ROOT.TVectorF(ntotruns)
+vgrerr = ROOT.TVectorF(ntotruns)
 
 for i in range(0, ntotruns):
     vx[i] = rpcRunsTime[i]
     vxerr[i] = 0.0
+    vgrerr[i] = 0.0
             
 
-histodir1 = rfile_out.mkdir("Effhistory_normAllRB3")
+histodir1 = rfile_out.mkdir("effhistory_norm")
 histodir1.cd()
 
 for myids in barrelids :
@@ -319,7 +322,7 @@ for myids in barrelids :
     tmpstring = tmpstring.replace('+','p').replace('-','m')
     #    print 'string aft:  ', tmpstring
     
-    h1_name = "eff_"+tmpstring+"_Norm"
+    h1_name = "eff_"+tmpstring+"_norm"
     #    h1_effruns = ROOT.TH1F(h1_name,h1_name,ntotruns, 0.5, ntotruns+0.5) 
 
     rollEffInRun = barrelRollsEffDict[myids]
@@ -348,7 +351,7 @@ for myids in barrelids :
 for myids in endcapids :
     tmpstring = (endcapRollsDict[myids]).replace('+','p').replace('-','m')
     
-    h3_name = "eff_"+tmpstring+"_Norm"
+    h3_name = "eff_"+tmpstring+"_norm"
     rollEffInRun = endcapRollsEffDict[myids]
     rollEffErrInRun = endcapRollsEffErrDict[myids]
     
@@ -369,12 +372,38 @@ for myids in endcapids :
             
     h3_effruns.Write()
     
+print "WRITE HISTORY PLOTS FOR REFERENCES"
+
+for m in range(0, ntotruns) :
+    if rb3EffInRun[m] != 0 :
+        vy[m] = rb3EffInRun[m]
+        vyerr[m] = rb3EffErrInRun[m]
+        vgr[m] = rb3GoodRollsInRun[m]
+hreference_effruns = ROOT.TGraphErrors(vx, vy, vxerr, vyerr)
+hreference_ngood = ROOT.TGraphErrors(vx, vgr, vxerr, vgrerr)
+hreference_effruns.SetNameTitle("rb3ref_eff","rb3ref_eff")
+hreference_ngood.SetNameTitle("rb3ref_ngood","rb3ref_ngood")
+hreference_effruns.Write()
+hreference_ngood.Write()
+
+for m in range(0, ntotruns) :
+    if re1Ring3EffInRun[m] != 0 :
+        vy[m] = re1Ring3EffInRun[m]
+        vyerr[m] = re1Ring3EffErrInRun[m]
+        vgr[m] = re1Ring3GoodRollsInRun[m]
+hreference1_effruns = ROOT.TGraphErrors(vx, vy, vxerr, vyerr)
+hreference1_ngood = ROOT.TGraphErrors(vx, vgr, vxerr, vgrerr)
+hreference1_effruns.SetNameTitle("re1ring3ref_eff","re1ring3ref_eff")
+hreference1_ngood.SetNameTitle("re1ring3ref_ngood","re1ring3ref_ngood")
+hreference1_effruns.Write()
+hreference1_ngood.Write()
+
 rfile_out.cd()
 
 
 print "WRITE HISTORY PLOTS"
 
-histodir2 = rfile_out.mkdir("Effhistory")
+histodir2 = rfile_out.mkdir("effhistory")
 histodir2.cd()
 
 for myids in barrelids :
@@ -422,14 +451,14 @@ rfile_out.cd()
 
 print "WRITE HISTORY PLOTS NORMALIZED TO RB3 in the wheel"
 
-histodir5 = rfile_out.mkdir("Effhistory_RB3Norm_InWh")
+histodir5 = rfile_out.mkdir("effhistory_RB3norm_InWh")
 histodir5.cd()
 
 for myids in barrelids :
     wh = ((barrelRollsDict[myids]).split('_'))[0]
     tmpstring = (barrelRollsDict[myids]).replace('+','p').replace('-','m')
     
-    h5_name = "eff_"+tmpstring+"_RB3Norm_InWh"
+    h5_name = "eff_"+tmpstring+"_RB3norm_InWh"
     rollEffInRun = barrelRollsEffDict[myids]
     rollEffErrInRun = barrelRollsEffErrDict[myids]
 

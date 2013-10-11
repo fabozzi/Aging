@@ -32,20 +32,31 @@ print "------------------------------------------------"
 print "INITIALIZING"
 
 # ARGUMENTS
+# python rollFitHistory.py eff RB3 -> fit eff plots no normalization 
+# python rollFitHistory.py eff RB4 norm -> fit eff plots with normalization 
 
 variab = sys.argv[1]
 variabCap = variab.capitalize()
 if variab[0].isupper() :
     variab = variab.lower()
 
+isbarrel = False
+isendcap = False
 rollstring = sys.argv[2]
+if rollstring.find("RB") != -1  :
+    isbarrel = True
+else :
+    isendcap = True
+
 
 norm = ""
 postfix = ""
 postfix1 = ""
+donorm = False
 
 if len(sys.argv) > 3 :
     if sys.argv[3] == "norm" :
+        donorm = True
         norm = sys.argv[3]
         postfix = "AllRB3"
         pf1 = "_"+norm
@@ -160,7 +171,7 @@ for myids in rb3ids :
     tmpstring = (barrelRollsDict[myids]).replace('+','p').replace('-','m')
     h1_name = variab+"_"+tmpstring
 
-    h_name = variabCap+"history"+pf1+postfix+"/"+h1_name+pf2
+    h_name = variab+"history"+pf1+"/"+h1_name+pf1
     myh = ROOT.TGraphErrors()
     rfile_in.GetObject(h_name,myh)
 
@@ -216,15 +227,34 @@ for myids in rb3ids :
     myh.GetXaxis().SetLimits(2012.2,2013)
     myh.Write()
 
+
+if donorm :
+    myh = ROOT.TGraphErrors()
+    myh1 = ROOT.TGraphErrors()
+    if isbarrel :
+        rfile_in.GetObject(variab+"history"+pf1+"/"+"rb3ref_eff",myh)
+        rfile_in.GetObject(variab+"history"+pf1+"/"+"rb3ref_ngood",myh1)
+    else : 
+        rfile_in.GetObject(variab+"history"+pf1+"/"+"re1ring3ref_eff",myh)
+        rfile_in.GetObject(variab+"history"+pf1+"/"+"re1ring3ref_ngood",myh1)
+
+    tf1 = ROOT.TF1("tf1","[0]+x*[1]")
+    fitstat = myh.Fit(tf1,"S","",2012.26891223,2012.95816911)
+    myh.GetXaxis().SetLimits(2012.2,2013)
+    myh.Write()
+    myh1.GetXaxis().SetLimits(2012.2,2013)
+    myh1.Write()
+
+
 mytree.Print()
 mytree.Write()
 
 rfile_out.Close()
 
 print "DONE"
-print "variable considered for fit: ", variab, variabCap
+print "variable considered for fit: ", variab
 print "SELECTED ROLLS: ", rollstring
-print "normalization ?", norm
+print "normalization ?", donorm
 
 
 
