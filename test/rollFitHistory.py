@@ -19,8 +19,8 @@ gROOT.ProcessLine(
     Float_t ndof;\
     Float_t refp;\
     Float_t refperr;\
-    Float_t daltahv;\
-    Float_t daltaslope;\
+    Float_t deltahv;\
+    Float_t deltaslope;\
 } ;");
 
 
@@ -131,7 +131,7 @@ dslope_dict = {}
 plateauInfoFile = open("deltaHV_2012.txt", "r")
 for p_entry in plateauInfoFile:
     readline = p_entry.rstrip().split(' ')
-    print readline[1], readline[2], readline[3]
+#    print readline[1], readline[2], readline[3]
     dhv50_dict[ readline[1] ] = readline[2]
     dslope_dict[ readline[1] ] = readline[3]
 
@@ -172,14 +172,14 @@ print "OPENING HISTORY PLOTS"
 # open root file
 rfile_in = ROOT.TFile.Open(variab+"_history_Graph_nofit_newnorm.root")
 
-outfilename = rollstring+"Rolls"+variabCap+(norm.capitalize())+"FitNEW.root"
+outfilename = rollstring+"Rolls"+variabCap+(norm.capitalize())+"Fit.root"
 
 rfile_out = ROOT.TFile.Open(outfilename,"RECREATE")
 
 rpcfit = RpcRollEffFit()
 
 mytree = ROOT.TTree('T', 'T')
-mytree.Branch('rpcfit',rpcfit,'rollidtree/I:p0/F:p0err/F:p1/F:p1err/F:chi2/F:ndof/F:refp/F:refperr/F')
+mytree.Branch('rpcfit',rpcfit,'rollidtree/I:p0/F:p0err/F:p1/F:p1err/F:chi2/F:ndof/F:refp/F:refperr/F:deltahv/F:deltaslope/F')
 
 for myids in rb3ids :
     tmpstring = (barrelRollsDict[myids]).replace('+','p').replace('-','m')
@@ -236,8 +236,8 @@ for myids in rb3ids :
     rpcfit.ndof = mndf
     rpcfit.refp = mrefp
     rpcfit.refperr = mrefperr
-    rpcfit.deltahv = 0
-    rpcfit.deltaslope = 0
+    rpcfit.deltahv = float(dhv50_dict.get(myids,-10000))
+    rpcfit.deltaslope = float(dslope_dict.get(myids,-10000))
 
     mytree.Fill()
     myh.GetXaxis().SetLimits(2012.2,2013)
