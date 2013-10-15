@@ -19,6 +19,8 @@ gROOT.ProcessLine(
     Float_t ndof;\
     Float_t refp;\
     Float_t refperr;\
+    Float_t daltahv;\
+    Float_t daltaslope;\
 } ;");
 
 
@@ -51,7 +53,8 @@ else :
 
 norm = ""
 postfix = ""
-postfix1 = ""
+pf1 = ""
+pf2 = ""
 donorm = False
 
 if len(sys.argv) > 3 :
@@ -122,6 +125,17 @@ endcapids = endcapRollsDict.keys()
 
 # NOW WE HAVE THE LISTS OF BARREL / ENDCAP / RB3_ROLLS (reference) / RE1Ring3_ROLLS (reference)
 
+# deltaHV50 and deltaslope info for rolls
+dhv50_dict = {}
+dslope_dict = {}
+plateauInfoFile = open("deltaHV_2012.txt", "r")
+for p_entry in plateauInfoFile:
+    readline = p_entry.rstrip().split(' ')
+    print readline[1], readline[2], readline[3]
+    dhv50_dict[ readline[1] ] = readline[2]
+    dslope_dict[ readline[1] ] = readline[3]
+
+
 # CREATE the run-date dictionary
 runs_time = {}
 runTimeFile = open("rpcrun_epoch.txt", "r")
@@ -158,7 +172,7 @@ print "OPENING HISTORY PLOTS"
 # open root file
 rfile_in = ROOT.TFile.Open(variab+"_history_Graph_nofit_newnorm.root")
 
-outfilename = rollstring+"Rolls"+variabCap+(norm.capitalize())+"Fit.root"
+outfilename = rollstring+"Rolls"+variabCap+(norm.capitalize())+"FitNEW.root"
 
 rfile_out = ROOT.TFile.Open(outfilename,"RECREATE")
 
@@ -222,6 +236,8 @@ for myids in rb3ids :
     rpcfit.ndof = mndf
     rpcfit.refp = mrefp
     rpcfit.refperr = mrefperr
+    rpcfit.deltahv = 0
+    rpcfit.deltaslope = 0
 
     mytree.Fill()
     myh.GetXaxis().SetLimits(2012.2,2013)
