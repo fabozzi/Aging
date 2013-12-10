@@ -34,7 +34,7 @@ print "------------------------------------------------"
 print "INITIALIZING"
 
 # ARGUMENTS
-# python rollanalysis.py eff RB3 [inbox/outofbox/largechi] 
+# python rollanalysis.py eff RB3 [inbox/outofbox/largechi/chi2gt10k/outofbox_negp1/inbox_largeNegDeltahv/...] 
 # python rollFitHistory.py eff RB4 outofbox norm -> fit eff plots with normalization 
 
 variab = sys.argv[1]
@@ -50,7 +50,7 @@ if rollstring.find("RB") != -1  :
 else :
     isendcap = True
 
-chi2cut = 3000
+chi2cut = 10000
 if rollstring == "RB2" :
     chi2cut = 4000
 
@@ -60,6 +60,12 @@ cut_dict["inbox"] = 0
 cut_dict["outofbox"] = 1
 cut_dict["largechi"] = 2
 cut_dict["chi2gt10k"] = 3
+cut_dict["outofbox_negp1"] = 4
+cut_dict["inbox_largeNegDeltahv"] = 5
+cut_dict["chi2lt10k_p1gt01"] = 6
+cut_dict["inbox_dhvgt004"] = 7
+cut_dict["inbox_dslltm30"] = 8
+cut_dict["reference"] = 9
 
 selregion = sys.argv[3]
 
@@ -214,6 +220,42 @@ for i in xrange(fittree.GetEntries()):
         if (rpcfit.chi2 > 10000) :
             print rpcfit.rollidtree, rb3RollsDict[ str( rpcfit.rollidtree ) ]
             f.write( rb3RollsDict[ str( rpcfit.rollidtree ) ] + "\t" + str(rpcfit.rollidtree) +"\n" )
+            nroll_sel = nroll_sel + 1
+            roll_sel.append( (rb3RollsDict[ str( rpcfit.rollidtree ) ] ).replace('+','p').replace('-','m')  )
+    elif cut_dict[selregion] == 4 : # this is the outofboxcut and only negative slopes
+        if (rpcfit.chi2 < chi2cut) and ( (math.fabs(rpcfit.p1)>0.02) or (rpcfit.refp<0.9) ) and (rpcfit.p1 < - 0.02) :
+            print rpcfit.rollidtree, rb3RollsDict[ str( rpcfit.rollidtree ) ]
+            f.write( rb3RollsDict[ str( rpcfit.rollidtree ) ] + "\t" + str(rpcfit.rollidtree) +"\n" )
+            nroll_sel = nroll_sel + 1
+            roll_sel.append( (rb3RollsDict[ str( rpcfit.rollidtree ) ] ).replace('+','p').replace('-','m')  )
+    elif cut_dict[selregion] == 5 : # this is the inboxcut but large negative deltahv
+        if (rpcfit.chi2 < chi2cut) and (math.fabs(rpcfit.p1)<0.02) and (rpcfit.refp>0.9) and (rpcfit.deltahv < -0.5 ):
+            print rpcfit.rollidtree, rb3RollsDict[ str( rpcfit.rollidtree ) ]
+            f.write( rb3RollsDict[ str( rpcfit.rollidtree ) ] + "\t" + str(rpcfit.rollidtree) +"\n" )
+            nroll_sel = nroll_sel + 1
+            roll_sel.append( (rb3RollsDict[ str( rpcfit.rollidtree ) ] ).replace('+','p').replace('-','m')  )
+    elif cut_dict[selregion] == 6 : # this is the outlier positive p1 cut 
+        if (rpcfit.chi2 < chi2cut) and (rpcfit.p1>0.1):
+            print rpcfit.rollidtree, rb3RollsDict[ str( rpcfit.rollidtree ) ]
+            f.write( rb3RollsDict[ str( rpcfit.rollidtree ) ] + "\t" + str(rpcfit.rollidtree) +"\n" )
+            nroll_sel = nroll_sel + 1
+            roll_sel.append( (rb3RollsDict[ str( rpcfit.rollidtree ) ] ).replace('+','p').replace('-','m')  )
+    elif cut_dict[selregion] == 7 : # this is the outlier region for deltahv within loose inbox
+        if (rpcfit.chi2 < chi2cut) and (math.fabs(rpcfit.p1)<0.05) and (rpcfit.refp>0.9) and (rpcfit.deltahv > -0.5) and (rpcfit.deltahv > 0.04 ) :
+            print rpcfit.rollidtree, rb3RollsDict[ str( rpcfit.rollidtree ) ]
+            f.write( rb3RollsDict[ str( rpcfit.rollidtree ) ] + "\t" + str(rpcfit.rollidtree) +"\n" )
+            nroll_sel = nroll_sel + 1
+            roll_sel.append( (rb3RollsDict[ str( rpcfit.rollidtree ) ] ).replace('+','p').replace('-','m')  )
+    elif cut_dict[selregion] == 8 : # this is the outlier region for deltaslope within loose inbox
+        if (rpcfit.chi2 < chi2cut) and (math.fabs(rpcfit.p1)<0.05) and (rpcfit.refp>0.9) and (rpcfit.deltahv > -0.5) and (rpcfit.deltaslope < -30 ) :
+            print rpcfit.rollidtree, rb3RollsDict[ str( rpcfit.rollidtree ) ]
+            f.write( rb3RollsDict[ str( rpcfit.rollidtree ) ] + "\t" + str(rpcfit.rollidtree) +"\n" )
+            nroll_sel = nroll_sel + 1
+            roll_sel.append( (rb3RollsDict[ str( rpcfit.rollidtree ) ] ).replace('+','p').replace('-','m')  )
+    elif cut_dict[selregion] == 9 : # this is the cut defining reference rolls
+        if (rpcfit.chi2 < chi2cut) and (rpcfit.p1 > -0.02) :
+            print rpcfit.rollidtree, rb3RollsDict[ str( rpcfit.rollidtree ) ]
+            f.write( str(rpcfit.rollidtree) +"\n" )
             nroll_sel = nroll_sel + 1
             roll_sel.append( (rb3RollsDict[ str( rpcfit.rollidtree ) ] ).replace('+','p').replace('-','m')  )
 
