@@ -232,6 +232,7 @@ for i in xrange(dbTree.GetEntries()):
                 rolleff = (rpcefficiency.eff_seg) / 100.0
 # get efficiency error
                 rollefferr = (rpcefficiency.eff_seg_error) / 100.0
+# get square root of number of entries
                 sqNentries = 0.0
                 if rolleff * rollefferr > 0 :
                     sqNentries = (math.sqrt( rolleff * (1.0-rolleff) )) / rollefferr
@@ -290,7 +291,7 @@ for myRunInd in range(runNumIndexFirst, runNumIndexLast+1) :
 
 print "DUMPING HISTORY PLOTS"
 
-outfilename = "eff_history_Graph_nofit_newnormTEST.root"
+outfilename = "eff_history_Graph_nofit_newnorm.root"
 
 rfile_out = ROOT.TFile.Open(outfilename,"RECREATE")
 
