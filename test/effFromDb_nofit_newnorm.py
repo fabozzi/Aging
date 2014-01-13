@@ -232,7 +232,6 @@ for i in xrange(dbTree.GetEntries()):
                 rolleff = (rpcefficiency.eff_seg) / 100.0
 # get efficiency error
                 rollefferr = (rpcefficiency.eff_seg_error) / 100.0
-# get square root of number of entries
                 sqNentries = 0.0
                 if rolleff * rollefferr > 0 :
                     sqNentries = (math.sqrt( rolleff * (1.0-rolleff) )) / rollefferr
@@ -254,8 +253,6 @@ for i in xrange(dbTree.GetEntries()):
                             re1Ring3EffInRun[temprunnumindex] = re1Ring3EffInRun[temprunnumindex] + rolleff
                             re1Ring3EffErrInRun[temprunnumindex] = re1Ring3EffErrInRun[temprunnumindex] + rollefferr
                             re1Ring3GoodRollsInRun[temprunnumindex] = re1Ring3GoodRollsInRun[temprunnumindex] + 1
-
-
 
 print "COMPUTING REFRENCE VALUES"
 
@@ -293,7 +290,7 @@ for myRunInd in range(runNumIndexFirst, runNumIndexLast+1) :
 
 print "DUMPING HISTORY PLOTS"
 
-outfilename = "eff_history_Graph_nofit_newnorm.root"
+outfilename = "eff_history_Graph_nofit_newnormTEST.root"
 
 rfile_out = ROOT.TFile.Open(outfilename,"RECREATE")
 
@@ -337,8 +334,8 @@ for myids in barrelids :
             relerr2 = rb3EffErrInRun[m] / rb3EffInRun[m]
             erreff_norm = relerr1 + relerr2
             erreff_norm = erreff_norm * eff_norm 
-            vy[m] = eff_norm
-            vyerr[m] = erreff_norm
+        vy[m] = eff_norm
+        vyerr[m] = erreff_norm
     h1_effruns = ROOT.TGraphErrors(vx, vy, vxerr, vyerr)
     h1_effruns.SetNameTitle(h1_name,h1_name)
 #    h_effruns.SetBinContent( m+1, eff_norm )
@@ -364,8 +361,8 @@ for myids in endcapids :
             relerr2 = re1Ring3EffErrInRun[m] / re1Ring3EffInRun[m]
             erreff_norm = relerr1 + relerr2
             erreff_norm = erreff_norm * eff_norm
-            vy[m] = eff_norm
-            vyerr[m] = erreff_norm
+        vy[m] = eff_norm
+        vyerr[m] = erreff_norm
             
     h3_effruns = ROOT.TGraphErrors(vx, vy, vxerr, vyerr)
     h3_effruns.SetNameTitle(h3_name,h3_name)
@@ -375,6 +372,8 @@ for myids in endcapids :
 print "WRITE HISTORY PLOTS FOR REFERENCES"
 
 for m in range(0, ntotruns) :
+    vy[m] = 0
+    vyerr[m] = 0
     if rb3EffInRun[m] != 0 :
         vy[m] = rb3EffInRun[m]
         vyerr[m] = rb3EffErrInRun[m]
@@ -387,6 +386,8 @@ hreference_effruns.Write()
 hreference_ngood.Write()
 
 for m in range(0, ntotruns) :
+    vy[m] = 0
+    vyerr[m] = 0
     if re1Ring3EffInRun[m] != 0 :
         vy[m] = re1Ring3EffInRun[m]
         vyerr[m] = re1Ring3EffErrInRun[m]
@@ -471,8 +472,8 @@ for myids in barrelids :
             relerr2 = (rb3EffErrInRun_ByW[wh])[m] / (rb3EffInRun_ByW[wh])[m]
             erreff_norm = relerr1 + relerr2
             erreff_norm = erreff_norm * eff_norm
-            vy[m] = eff_norm
-            vyerr[m] = erreff_norm
+        vy[m] = eff_norm
+        vyerr[m] = erreff_norm
             
     h5_effruns = ROOT.TGraphErrors(vx, vy, vxerr, vyerr)
     h5_effruns.SetNameTitle(h5_name,h5_name)
