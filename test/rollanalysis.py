@@ -2,7 +2,7 @@
 
 import sys
 #sys.argv.append('-b')
-import os, commands
+import os, commands, shutil
 import math
 import ROOT
 
@@ -34,8 +34,12 @@ print "------------------------------------------------"
 print "INITIALIZING"
 
 # ARGUMENTS
-# python rollanalysis.py eff RB3 [inbox/outofbox/largechi/chi2gt10k/outofbox_negp1/inbox_largeNegDeltahv/...] 
-# python rollFitHistory.py eff RB4 outofbox norm -> fit eff plots with normalization 
+# python rollanalysis.py eff RB4 outofbox_negp1 0.02 norm 
+# eff -> variable of history plots
+# RB4 -> rolls
+# outofbox_negp1 -> string to define a certain cut
+# 0.02 -> works only for certain simple cuts (outofbox_negp1, lowrefp): it is the value of the cut
+# consider plots with normalization; default is no normalization
 
 variab = sys.argv[1]
 variabCap = variab.capitalize()
@@ -51,14 +55,12 @@ else :
     isendcap = True
 
 chi2cut = 10000
-if rollstring == "RB2" :
-    chi2cut = 4000
 
 cut_dict = {}
 
 cut_dict["inbox"] = 0
 cut_dict["outofbox"] = 1
-cut_dict["largechi"] = 2
+cut_dict["lowrefp"] = 2
 cut_dict["chi2gt10k"] = 3
 cut_dict["outofbox_negp1"] = 4
 cut_dict["inbox_largeNegDeltahv"] = 5
@@ -69,17 +71,23 @@ cut_dict["reference"] = 9
 
 selregion = sys.argv[3]
 
+p1cut = float(sys.argv[4])
+
 norm = ""
 pf1 = ""
 pf2 = ""
 donorm = False
+p1cutstr = (sys.argv[4]).replace('.','p')
 
-if len(sys.argv) > 4 :
-    if sys.argv[4] == "norm" :
+if len(sys.argv) > 5 :
+    if sys.argv[5] == "norm" :
         donorm = True
-        norm = sys.argv[4]
+        norm = sys.argv[5]
         pf1 = "_"+norm
         pf2 = "_"+(norm.capitalize())
+
+
+print sys.argv[4], p1cut
 
 
 # fill the list of bad chambers from input blacklist
@@ -189,7 +197,13 @@ nroll_sel = 0
 roll_sel = []
 
 
-selfilename = rollstring+"_"+selregion+".txt"
+selfilename = rollstring+"_"+selregion
+if cut_dict[selregion] == 4 :
+    selfilename = selfilename + "_"+ p1cutstr
+if cut_dict[selregion] == 2 :
+    selfilename = selfilename + "_"+ p1cutstr
+selfilename = selfilename + pf1 + ".txt"
+
 f = open(selfilename, 'w')
 
 ############################################################################
@@ -210,8 +224,8 @@ for i in xrange(fittree.GetEntries()):
             f.write( rb3RollsDict[ str( rpcfit.rollidtree ) ] + "\t" + str(rpcfit.rollidtree) +"\n" )
             nroll_sel = nroll_sel + 1
             roll_sel.append( (rb3RollsDict[ str( rpcfit.rollidtree ) ] ).replace('+','p').replace('-','m')  )
-    elif cut_dict[selregion] == 2 : # this is the chi2 > chi2cut but < 10000
-        if (rpcfit.chi2 > chi2cut) and (rpcfit.chi2 < 10000):
+    elif cut_dict[selregion] == 2 : # this is the low refp cut
+        if (rpcfit.chi2 < chi2cut) and (rpcfit.refp<p1cut) :
             print rpcfit.rollidtree, rb3RollsDict[ str( rpcfit.rollidtree ) ]
             f.write( rb3RollsDict[ str( rpcfit.rollidtree ) ] + "\t" + str(rpcfit.rollidtree) +"\n" )
             nroll_sel = nroll_sel + 1
@@ -222,8 +236,8 @@ for i in xrange(fittree.GetEntries()):
             f.write( rb3RollsDict[ str( rpcfit.rollidtree ) ] + "\t" + str(rpcfit.rollidtree) +"\n" )
             nroll_sel = nroll_sel + 1
             roll_sel.append( (rb3RollsDict[ str( rpcfit.rollidtree ) ] ).replace('+','p').replace('-','m')  )
-    elif cut_dict[selregion] == 4 : # this is the outofboxcut and only negative slopes
-        if (rpcfit.chi2 < chi2cut) and ( (math.fabs(rpcfit.p1)>0.02) or (rpcfit.refp<0.9) ) and (rpcfit.p1 < - 0.02) :
+    elif cut_dict[selregion] == 4 : # this is the only negative slopes rolls
+        if (rpcfit.chi2 < chi2cut) and (rpcfit.p1 < - p1cut) :
             print rpcfit.rollidtree, rb3RollsDict[ str( rpcfit.rollidtree ) ]
             f.write( rb3RollsDict[ str( rpcfit.rollidtree ) ] + "\t" + str(rpcfit.rollidtree) +"\n" )
             nroll_sel = nroll_sel + 1
@@ -263,14 +277,22 @@ f.close()
 
 outplotdir = rollstring+"plots_"+selregion
 
-if not (os.path.exists(outplotdir)) :
-    os.mkdir(outplotdir)
+if cut_dict[selregion] == 4 :
+    outplotdir = outplotdir+"_"+p1cutstr
+if cut_dict[selregion] == 2 :
+    outplotdir = outplotdir+"_"+p1cutstr
+
+outplotdir = outplotdir + pf1
+
+rmdircommand = "rm -fr "+ outplotdir
+os.system(rmdircommand)
+os.mkdir(outplotdir)
 
 for rollname in roll_sel :
     myh = ROOT.TGraphErrors()
-    rfile_in.GetObject("eff_"+rollname,myh)
+    rfile_in.GetObject("eff_"+rollname+pf1,myh)
     myh.Draw("AP")
-    c1.SaveAs(outplotdir+"/"+rollname+".png")
+    c1.SaveAs(outplotdir+"/"+rollname+pf1+".png")
 
 
 print "DONE"
