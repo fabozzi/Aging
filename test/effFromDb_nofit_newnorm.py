@@ -44,8 +44,9 @@ for chamber in blackListFile:
     chamber = (chamber.rstrip().split(' '))[1]
 #    print chamber
     badChambers.append(chamber)
-
-
+#    if chamber.find("RB4") > -1 :
+#        print chamber
+        
 print "------------------------------------------------"
 
 # fill the list of rb3 rolls used as reference
@@ -70,6 +71,8 @@ for w in wheels_names :
 # open chamberID definition file and create a dictionary
 #chambDict = {}
 chambCounter = 0
+#rb4goodrollsCount = 0
+#rb4badrollsCount = 0
 chambDictFile = open("mapRoll.ascii", "r")
 for chambEntry in chambDictFile:
 #    print chambEntry
@@ -79,6 +82,8 @@ for chambEntry in chambDictFile:
     if not( (chambID[1]) in badChambers ) :
         if (chambID[1]).startswith("W"):
             barrelRollsDict[ chambID[0] ] = chambID[1]
+#            if ((chambID[1]).find("RB4")) > -1 :
+#                rb4goodrollsCount = rb4goodrollsCount+1
             if ((chambID[1]).find("RB3")) > -1 :
                 rb3RollsDict[ chambID[0] ] = chambID[1]
                 if (chambID[1]).startswith("W-2"):
@@ -95,7 +100,14 @@ for chambEntry in chambDictFile:
             endcapRollsDict[ chambID[0] ] = chambID[1]
             if (((chambID[1]).find("RE+1_R3")) > -1) or (((chambID[1]).find("RE-1_R3")) > -1)  :
                 re1Ring3RollsDict[ chambID[0] ] = chambID[1]
-                
+#    else :
+#        if ((chambID[1]).find("RB4")) > -1 :
+#            print chambID[1]
+#            rb4badrollsCount = rb4badrollsCount+1
+#    
+#print "GOOD RB4 rolls = ", rb4goodrollsCount
+#print "BAD RB4 rolls = ", rb4badrollsCount
+
 #    else :
 #        print " BAD ROLL FOUND !!!!!!!!!!!!!!"
 
@@ -372,6 +384,8 @@ for myids in endcapids :
     
 print "WRITE HISTORY PLOTS FOR REFERENCES"
 
+heffref = ROOT.TH1F("refeff", "refeff", 200, 0.8, 1)
+heffref_err = ROOT.TH1F("refeff_err", "refeff_err", 200, 0, 0.1)
 for m in range(0, ntotruns) :
     vy[m] = 0
     vyerr[m] = 0
@@ -379,12 +393,16 @@ for m in range(0, ntotruns) :
         vy[m] = rb3EffInRun[m]
         vyerr[m] = rb3EffErrInRun[m]
         vgr[m] = rb3GoodRollsInRun[m]
+        heffref.Fill(rb3EffInRun[m])
+        heffref_err.Fill(rb3EffErrInRun[m])
 hreference_effruns = ROOT.TGraphErrors(vx, vy, vxerr, vyerr)
 hreference_ngood = ROOT.TGraphErrors(vx, vgr, vxerr, vgrerr)
 hreference_effruns.SetNameTitle("rb3ref_eff","rb3ref_eff")
 hreference_ngood.SetNameTitle("rb3ref_ngood","rb3ref_ngood")
 hreference_effruns.Write()
 hreference_ngood.Write()
+heffref.Write()
+heffref_err.Write()
 
 for m in range(0, ntotruns) :
     vy[m] = 0
@@ -408,6 +426,9 @@ print "WRITE HISTORY PLOTS"
 histodir2 = rfile_out.mkdir("effhistory")
 histodir2.cd()
 
+#hrb3rolleff = ROOT.TH1F("Wm1_RB3m_S03_Forwardeff", "Wm1_RB3m_S03_Forwardeff", 200, 0.8, 1)
+#hrb3rolleff_err = ROOT.TH1F("Wm1_RB3m_S03_Forwardeff_err", "Wm1_RB3m_S03_Forwardeff_err", 200, 0, 0.1)
+
 for myids in barrelids :
     tmpstring = barrelRollsDict[myids]
     #    print 'string bef:  ', tmpstring
@@ -427,11 +448,15 @@ for myids in barrelids :
         #            h_effruns.GetXaxis().SetBinLabel(m+1,str(rpcRuns[m]))
         vy[m] = rollEffInRun[m]
         vyerr[m] = rollEffErrInRun[m]
+#        if tmpstring == "Wm1_RB3m_S03_Forward" :
+#            hrb3rolleff.Fill(rollEffInRun[m])
+#            hrb3rolleff_err.Fill(rollEffErrInRun[m])
                         
     h2_eff = ROOT.TGraphErrors(vx, vy, vxerr, vyerr)
     h2_eff.SetNameTitle(h2_name,h2_name)
     h2_eff.Write()
-                
+#hrb3rolleff.Write()                
+#hrb3rolleff_err.Write()                
 
 for myids in endcapids :
     tmpstring = (endcapRollsDict[myids]).replace('+','p').replace('-','m')
