@@ -199,6 +199,8 @@ for myids in rb3ids :
     mrefperr = 0
     
     tf1 = ROOT.TF1("tf1","[0]+x*[1]")
+    tf1.SetParameter(0, 0.95)
+    tf1.SetParameter(1, 0)
     fitstat = myh.Fit(tf1,"S","",2012.26891223,2012.95816911)
 
     mchi2 = fitstat.Chi2()
@@ -255,6 +257,8 @@ if donorm :
         rfile_in.GetObject(variab+"history"+pf1+"/"+"re1ring3ref_ngood",myh1)
 
     tf1 = ROOT.TF1("tf1","[0]+x*[1]")
+    tf1.SetParameter(0, 0.95)
+    tf1.SetParameter(1, 0)
     fitstat = myh.Fit(tf1,"S","",2012.26891223,2012.95816911)
     myh.GetXaxis().SetLimits(2012.2,2013)
     myh.Write()
